@@ -1,11 +1,15 @@
-"""Always-on public bot runner: replies to ANY Telegram user.
+"""Always-on private bot runner: ONLY owner chat can trigger it.
 
 Usage:
-  python -m app.run_bot            # polls forever, replies to /start /news
+  python -m app.run_bot            # polls forever, replies when YOU send news
   python -m app.run_bot --once     # fetch one batch then exit (test mode)
 
-Needs 24/7 hosting (Render/Railway/Fly). GitHub Actions free CANNOT do this
-because it exits after one run instead of listening.
+Send "news" or /news in Telegram and it replies with the Top-10 brief.
+Anyone else messaging is ignored.
+
+Needs 24/7 to listen: keep this running on your PC for testing,
+or host on Render/Railway/Fly. GitHub Actions free CANNOT listen
+because it exits after one run.
 """
 
 import argparse

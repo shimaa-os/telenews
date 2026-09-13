@@ -11,6 +11,7 @@ def test_parse_command_handles_variants():
     assert parse_command("/start") == "start"
     assert parse_command("/start@MyBot") == "start"
     assert parse_command("/news") == "news"
+    assert parse_command("news") == "news"
     assert parse_command("  /HELP ") == "help"
     assert parse_command("hello") == "unknown"
     assert parse_command(None) == "unknown"
@@ -65,7 +66,7 @@ async def test_public_bot_sends_cached_brief_without_new_run():
         settings=workflow.settings, workflow=workflow, telegram=telegram
     )
 
-    await poller.handle_message("111", "/news")
+    await poller.handle_message("999", "news")
 
     assert telegram.sent and telegram.sent[-1][1] == "CACHED BRIEF"
 
@@ -78,7 +79,20 @@ async def test_public_bot_rate_limits_fast_repeats():
         settings=workflow.settings, workflow=workflow, telegram=telegram
     )
 
-    await poller.handle_message("222", "/news")
-    await poller.handle_message("222", "/news")
+    await poller.handle_message("999", "/news")
+    await poller.handle_message("999", "/news")
 
     assert "wait" in telegram.sent[-1][1].lower()
+
+
+@pytest.mark.asyncio
+async def test_private_bot_ignores_strangers():
+    workflow = _workflow_with_cache(fresh=True)
+    telegram = FakeTelegram()
+    poller = PublicBotPoller(
+        settings=workflow.settings, workflow=workflow, telegram=telegram
+    )
+
+    await poller.handle_message("111", "/news")
+
+    assert telegram.sent == []

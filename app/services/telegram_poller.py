@@ -1,14 +1,15 @@
-"""Public Telegram bot polling so ANY user with the bot username can use it.
+"""Private Telegram bot polling - ONLY owner can use it.
 
 How it works (beginner-friendly):
 - Telegram keeps an inbox for your bot. `getUpdates` = "give me new messages".
-- This loop asks every few seconds: "anyone new?". If yes, replies.
-- /start or /news -> sends the latest cached brief (no new AI cost).
-  Only if cache is older than BRIEF_CACHE_HOURS does it run a fresh workflow.
-- This protects your OpenRouter quota from abuse when 100 people press /news.
+- This loop asks every few seconds: "did owner send news?". If yes, replies.
+- Send "news" or /news -> sends the latest cached Top-10 brief (no new AI cost).
+  Only if cache is older than CACHE_HOURS does it run a fresh workflow.
+- Messages from ANY other chat_id are ignored (private bot).
 
-Run always-on (needs 24/7 server, e.g. Render):
+Run on your PC for testing:
   python -m app.run_bot
+Run 24/7 on Render for always-listening.
 """
 
 import asyncio
@@ -26,8 +27,8 @@ from app.utils.logging import log_event
 logger = logging.getLogger(__name__)
 
 WELCOME_MESSAGE = (
-    "Welcome to AI Morning Brief!\n\n"
-    "Send /news anytime to get the Top-10 latest global, business, tech, science and crypto brief.\n\n"
+    "Private AI Morning Brief.\n\n"
+    "Send news anytime and I will send you the Top-10 latest brief.\n\n"
     "Daily auto-post is at 08:00 Cairo time.\n"
     "Generated automatically by AI and X.com"
 )
@@ -48,7 +49,7 @@ def parse_command(text: str | None) -> str:
 
 
 class PublicBotPoller:
-    """Poll getUpdates and reply to ANY chat with cached brief."""
+    """Poll getUpdates and reply ONLY to the owner chat."""
 
     def __init__(
         self,
@@ -63,6 +64,7 @@ class PublicBotPoller:
         self.workflow = workflow
         self.telegram = telegram
         self.cache_hours = cache_hours
+        self.owner_id = str(settings.telegram_chat_id or "")
         self._updates_url = f"https://api.telegram.org/bot{token}/getUpdates"
         self._offset: int = 0
         self._last_user_request: dict[str, float] = {}
@@ -98,6 +100,10 @@ class PublicBotPoller:
         return self.workflow.last_message or "No recent qualifying news for today."
 
     async def handle_message(self, chat_id: str, text: str | None) -> None:
+        # PRIVATE BOT: ignore everyone except owner.
+        if self.owner_id and str(chat_id) != self.owner_id:
+            log_event(logger, logging.INFO, "private_bot_ignored_stranger")
+            return
         command = parse_command(text)
         if command == "unknown":
             await self.telegram.send_to_chat(chat_id, WELCOME_MESSAGE)
