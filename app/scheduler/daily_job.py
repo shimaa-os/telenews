@@ -99,13 +99,23 @@ class BriefWorkflow:
                     base_url=self.settings.openai_base_url,
                 )
                 try:
-                    stories = await summarizer.summarize_news(selected)
+                    brief_result = await summarizer.summarize_news(selected)
                 finally:
                     await summarizer.close()
+                stories = brief_result.stories
+                top_story_reason = brief_result.top_story_reason
+                market_snapshot = brief_result.market_snapshot
             else:
                 stories = []
+                top_story_reason = ""
+                market_snapshot = ""
 
-            message = format_telegram_message(stories, date=started_at)
+            message = format_telegram_message(
+                stories,
+                date=started_at,
+                top_story_reason=top_story_reason,
+                market_snapshot=market_snapshot,
+            )
             telegram_messages_sent = 0
 
             if send_to_telegram:

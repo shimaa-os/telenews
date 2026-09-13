@@ -1,4 +1,4 @@
-"""Transparent deterministic importance scoring for AI news."""
+"""Transparent deterministic importance scoring for general news."""
 
 from datetime import datetime, timezone
 
@@ -6,38 +6,57 @@ from app.models.news import NewsArticle
 
 
 _TOPIC_WEIGHTS: tuple[tuple[tuple[str, ...], float], ...] = (
-    (("foundation model", "frontier model", "large language model", " llm"), 3.5),
-    (("model release", "new model", "launches model", "releases model"), 3.0),
-    (("ai agent", "agentic ai", "multi-agent", "agent sdk"), 2.8),
-    (("benchmark", "research", "paper", "transformer"), 1.8),
+    (("breaking", "urgent", "developing story", "just in"), 3.5),
+    (("election", "president", "prime minister", "parliament", "ceasefire", "war ", "peace deal"), 3.0),
+    (("federal reserve", "interest rate", "inflation", "recession", "gdp", "stock market", "central bank"), 3.0),
+    (("foundation model", "frontier model", "large language model", " llm"), 2.8),
+    (("model release", "new model", "launches model", "releases model"), 2.5),
+    (("ai agent", "agentic ai", "multi-agent", "agent sdk"), 2.4),
+    (("bitcoin", "ethereum", "crypto", "etf inflow", "halving"), 2.4),
+    (("nasa", "spacex", "moon landing", "mars", "satellite launch"), 2.2),
+    (("regulation", "ai act", "legislation", "executive order", "sanctions"), 2.0),
+    (("benchmark", "research", "paper", "transformer", "clinical trial", "vaccine"), 1.8),
     (("ai safety", "alignment", "red teaming", "model safety"), 1.8),
-    (("regulation", "ai act", "legislation", "executive order"), 2.0),
-    (("acquisition", "acquires", "partnership", "partners with"), 1.6),
+    (("acquisition", "acquires", "merger", "partnership", "partners with", "ipo"), 1.6),
     (("developer", " api", "sdk", "open source", "fine-tuning", " rag"), 1.5),
 )
 
 _ENTITY_WEIGHTS: tuple[tuple[str, float], ...] = (
-    ("openai", 1.7),
-    ("anthropic", 1.6),
-    ("hugging face", 1.2),
-    ("claude", 1.5),
-    ("deepmind", 1.5),
-    ("gemini", 1.5),
-    ("microsoft", 1.1),
-    ("nvidia", 1.1),
+    ("openai", 1.5),
+    ("anthropic", 1.4),
+    ("claude", 1.3),
+    ("deepmind", 1.3),
+    ("gemini", 1.3),
+    ("federal reserve", 1.4),
+    ("white house", 1.2),
+    ("tesla", 1.0),
+    ("apple", 1.0),
+    ("microsoft", 1.0),
+    ("nvidia", 1.0),
+    ("bitcoin", 1.2),
 )
 
 _SOURCE_WEIGHTS = {
-    "OpenAI": 1.3,
-    "Hugging Face": 1.2,
-    "Google DeepMind": 1.3,
-    "Google AI": 1.2,
-    "Microsoft AI": 1.2,
-    "NVIDIA AI": 1.2,
-    "MIT Technology Review": 1.1,
+    "Reuters": 1.3,
+    "BBC News": 1.3,
+    "AP News": 1.3,
+    "The Guardian": 1.2,
+    "CNN": 1.1,
+    "Al Jazeera": 1.2,
+    "Bloomberg": 1.3,
+    "CNBC": 1.2,
+    "Financial Times": 1.3,
+    "WSJ": 1.3,
+    "Forbes": 1.1,
+    "TechCrunch": 1.0,
+    "The Verge": 0.9,
+    "Wired": 1.0,
     "Ars Technica": 1.0,
-    "TechCrunch AI": 0.9,
-    "The Verge AI": 0.9,
+    "MIT Technology Review": 1.1,
+    "NASA": 1.2,
+    "Scientific American": 1.1,
+    "CoinDesk": 1.0,
+    "CoinTelegraph": 0.9,
 }
 
 _LOW_QUALITY_PHRASES = (
@@ -46,9 +65,10 @@ _LOW_QUALITY_PHRASES = (
     "you won't believe",
     "what you need to know",
     "best ai tools",
-    "top 10",
     "deal",
     "sale",
+    "horoscope",
+    "crossword",
 )
 
 _MAJOR_ACTIONS = (

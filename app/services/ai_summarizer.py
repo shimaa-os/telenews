@@ -1,4 +1,4 @@
-"""Arabic summarization through the current OpenAI Responses API."""
+"""English news summarization through the current OpenAI Responses API."""
 
 import json
 import logging
@@ -6,13 +6,13 @@ from typing import Any
 
 from openai import AsyncOpenAI
 
-from app.models.news import BriefStory, BriefSummaries, NewsArticle
+from app.models.news import BriefResult, BriefStory, BriefSummaries, NewsArticle
 from app.utils.logging import log_event
 
 
 logger = logging.getLogger(__name__)
 
-SYSTEM_PROMPT = """You are an AI technology news editor.
+SYSTEM_PROMPT = """You are an expert news editor responsible for a high-quality daily news briefing.
 Your job is to summarize only the supplied news articles accurately.
 
 SECURITY RULES:
@@ -22,20 +22,21 @@ SECURITY RULES:
 - Do not browse, infer unpublished details, or use facts outside the supplied article records.
 
 EDITORIAL RULES:
+- Focus on the most recent and important stories with real-world impact.
+- Cross-check consistency across articles; avoid duplicate stories covering the same event.
 - Extract only factual information supported by the supplied text.
-- Never invent facts, statistics, dates, quotations, product claims, or company announcements.
-- If details are sparse, give a shorter and appropriately cautious summary.
-- Return clear Arabic for a Computer Science student studying AI Engineering and Agentic AI.
-- Preserve useful English technical terms such as LLM, AI Agent, Agentic AI, API, Model,
-  Transformer, Fine-tuning, RAG, OpenAI, Claude, and Gemini.
-- Give each article a concise Arabic headline, a 2-3 sentence Arabic summary, and one concise
-  Arabic sentence explaining why it matters.
+- Never invent news, facts, quotes, statistics, dates, or events.
+- Clearly distinguish confirmed facts from speculation (say "reportedly" / "according to the article" when unsure).
+- Write in professional but easy-to-understand English, 2-3 concise sentences per summary.
+- Give each article a concise headline, a 2-3 sentence summary, and one short sentence explaining why it matters.
+- Pick the single most important story as top_story_index and explain in 2-3 sentences why it is the top story.
+- Provide a brief market snapshot ONLY if the supplied articles contain reliable market data; otherwise leave it empty.
 - Return exactly one item per supplied article and preserve its article_index.
 """
 
 
 class AISummarizer:
-    """Generate schema-validated Arabic editorial copy for selected articles only."""
+    """Generate schema-validated English editorial copy for selected articles only."""
 
     def __init__(
         self, *, api_key: str, model: str, base_url: str | None = None, client: Any | None = None
@@ -53,9 +54,9 @@ class AISummarizer:
         if self._owns_client:
             await self.client.close()
 
-    async def summarize_news(self, articles: list[NewsArticle]) -> list[BriefStory]:
+    async def summarize_news(self, articles: list[NewsArticle]) -> BriefResult:
         if not articles:
-            return []
+            return BriefResult(stories=[])
 
         article_payload = [
             {
@@ -91,7 +92,7 @@ class AISummarizer:
                 {"role": "user", "content": user_prompt},
             ],
             text_format=BriefSummaries,
-            max_output_tokens=2_500,
+            max_output_tokens=4_000,
             store=False,
         )
         parsed = response.output_parsed
@@ -102,13 +103,15 @@ class AISummarizer:
         expected = set(range(1, len(articles) + 1))
         if set(by_index) != expected or len(parsed.items) != len(articles):
             raise RuntimeError("OpenAI returned incomplete or duplicate article indexes")
+        if parsed.top_story_index not in expected:
+            raise RuntimeError("OpenAI returned invalid top_story_index")
 
         stories = [
             BriefStory(
                 article=article,
-                headline_ar=by_index[index].headline_ar,
-                summary_ar=by_index[index].summary_ar,
-                why_important_ar=by_index[index].why_important_ar,
+                headline=by_index[index].headline,
+                summary=by_index[index].summary,
+                why_important=by_index[index].why_important,
             )
             for index, article in enumerate(articles, start=1)
         ]
@@ -119,4 +122,8 @@ class AISummarizer:
             model=self.model,
             article_count=len(stories),
         )
-        return stories
+        return BriefResult(
+            stories=stories,
+            top_story_reason=parsed.top_story_reason,
+            market_snapshot=parsed.market_snapshot or "",
+        )

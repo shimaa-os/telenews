@@ -29,25 +29,31 @@ class RSSSource:
 
 
 DEFAULT_SOURCES: tuple[RSSSource, ...] = (
-    RSSSource("OpenAI", "https://openai.com/news/rss.xml"),
-    RSSSource("Hugging Face", "https://huggingface.co/blog/feed.xml"),
-    RSSSource("Google DeepMind", "https://deepmind.google/blog/rss.xml"),
-    RSSSource("Google AI", "https://blog.google/technology/ai/rss/"),
-    RSSSource("Microsoft AI", "https://news.microsoft.com/source/topics/ai/feed/"),
-    RSSSource("NVIDIA AI", "https://blogs.nvidia.com/feed/"),
-    RSSSource(
-        "TechCrunch AI",
-        "https://techcrunch.com/category/artificial-intelligence/feed/",
-    ),
-    RSSSource(
-        "The Verge AI",
-        "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml",
-    ),
-    RSSSource("Ars Technica", "https://feeds.arstechnica.com/arstechnica/technology-lab"),
-    RSSSource(
-        "MIT Technology Review",
-        "https://www.technologyreview.com/topic/artificial-intelligence/feed/",
-    ),
+    # GLOBAL NEWS
+    RSSSource("Reuters", "https://www.reuters.com/rssFeed/businessNews"),
+    RSSSource("BBC News", "https://feeds.bbci.co.uk/news/rss.xml"),
+    RSSSource("AP News", "https://apnews.com/index.xml"),
+    RSSSource("The Guardian", "https://www.theguardian.com/world/rss"),
+    RSSSource("CNN", "http://rss.cnn.com/rss/edition.rss"),
+    RSSSource("Al Jazeera", "https://www.aljazeera.com/xml/rss/all.xml"),
+    # BUSINESS & FINANCE
+    RSSSource("Bloomberg", "https://feeds.bloomberg.com/markets/news.rss"),
+    RSSSource("CNBC", "https://www.cnbc.com/id/100003114/device/rss/rss.html"),
+    RSSSource("Financial Times", "https://www.ft.com/world?format=rss"),
+    RSSSource("WSJ", "https://feeds.a.dj.com/rss/RSSWorldNews.xml"),
+    RSSSource("Forbes", "https://www.forbes.com/business/feed/"),
+    # TECHNOLOGY & AI
+    RSSSource("TechCrunch", "https://techcrunch.com/feed/"),
+    RSSSource("The Verge", "https://www.theverge.com/rss/index.xml"),
+    RSSSource("Wired", "https://www.wired.com/feed/rss"),
+    RSSSource("Ars Technica", "https://feeds.arstechnica.com/arstechnica/index"),
+    RSSSource("MIT Technology Review", "https://www.technologyreview.com/feed/"),
+    # SCIENCE & SPACE
+    RSSSource("NASA", "https://www.nasa.gov/rss/dyn/breaking_news.rss"),
+    RSSSource("Scientific American", "https://www.scientificamerican.com/feed/"),
+    # CRYPTO & DIGITAL ECONOMY
+    RSSSource("CoinDesk", "https://www.coindesk.com/arc/outboundfeeds/rss/"),
+    RSSSource("CoinTelegraph", "https://cointelegraph.com/rss"),
 )
 
 

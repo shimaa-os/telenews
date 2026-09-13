@@ -11,27 +11,32 @@ from app.services.telegram_service import TelegramService, split_message
 
 def test_format_telegram_message_contains_expected_arabic_sections():
     article = NewsArticle(
-        title="OpenAI releases model",
+        title="Markets rally",
         description="details",
-        source="OpenAI",
-        url="https://example.com/openai",
+        source="Reuters",
+        url="https://example.com/markets",
         published_at=datetime(2026, 9, 13, 5, 0, tzinfo=timezone.utc),
     )
     story = BriefStory(
         article=article,
-        headline_ar="خبر مهم عن OpenAI",
-        summary_ar="ملخص عربي قصير عن الخبر.",
-        why_important_ar="لأنه يؤثر على مطوري AI Agents.",
+        headline="Markets rally on rates outlook",
+        summary="Stocks rose after fresh data in a broad advance.",
+        why_important="It shapes rates and portfolios.",
     )
 
     message = format_telegram_message(
-        [story], date=datetime(2026, 9, 13, 8, 0, tzinfo=timezone.utc)
+        [story],
+        date=datetime(2026, 9, 13, 8, 0, tzinfo=timezone.utc),
+        top_story_reason="Top because it moves policy.",
+        market_snapshot="Stocks higher; no reliable crypto move.",
     )
 
-    assert "AI Morning Brief" in message
-    assert "الملخص" in message
-    assert "ليه الخبر مهم" in message
-    assert "https://example.com/openai" in message
+    assert "AI MORNING BRIEF" in message
+    assert "Why it matters" in message
+    assert "TOP STORY" in message
+    assert "MARKET SNAPSHOT" in message
+    assert "https://example.com/markets" not in message  # URL omitted, source shown
+    assert "Reuters" in message
 
 
 def test_split_message_respects_telegram_limit_and_preserves_content():

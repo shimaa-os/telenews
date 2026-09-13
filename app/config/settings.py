@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     news_lookback_hours: int = Field(
         default=24, ge=1, le=168, alias="NEWS_LOOKBACK_HOURS"
     )
-    max_news_items: int = Field(default=5, ge=1, le=10, alias="MAX_NEWS_ITEMS")
+    max_news_items: int = Field(default=10, ge=1, le=10, alias="MAX_NEWS_ITEMS")
     openai_model: str = Field(default="gpt-5-mini", alias="OPENAI_MODEL")
     openai_base_url: str | None = Field(default=None, alias="OPENAI_BASE_URL")
     request_timeout_seconds: float = Field(

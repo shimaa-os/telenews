@@ -30,8 +30,19 @@ class NewsArticle(BaseModel):
         return value.astimezone(timezone.utc)
 
 
+class BriefItem(BaseModel):
+    """One structured English summary returned by the LLM."""
+
+    article_index: int = Field(ge=1, le=10)
+    headline: str = Field(min_length=1, max_length=180)
+    summary: str = Field(min_length=1, max_length=700)
+    why_important: str = Field(min_length=1, max_length=280)
+
+
+# Backward-compat alias: old Arabic name now maps to English fields.
+# Tests and old code importing ArabicBriefItem keep working.
 class ArabicBriefItem(BaseModel):
-    """One structured Arabic summary returned by the LLM."""
+    """Deprecated alias kept so old imports do not break."""
 
     article_index: int = Field(ge=1, le=10)
     headline_ar: str = Field(min_length=1, max_length=180)
@@ -40,15 +51,39 @@ class ArabicBriefItem(BaseModel):
 
 
 class BriefSummaries(BaseModel):
-    """Validated batch of Arabic summaries."""
+    """Validated batch of English summaries plus top story and market snapshot."""
 
-    items: list[ArabicBriefItem] = Field(min_length=1, max_length=10)
+    items: list[BriefItem] = Field(min_length=1, max_length=10)
+    top_story_index: int = Field(ge=1, le=10)
+    top_story_reason: str = Field(min_length=1, max_length=500)
+    market_snapshot: str = Field(default="", max_length=500)
 
 
 class BriefStory(BaseModel):
-    """An original article paired with its validated Arabic editorial copy."""
+    """An original article paired with its validated English editorial copy."""
 
     article: NewsArticle
-    headline_ar: str
-    summary_ar: str
-    why_important_ar: str
+    headline: str
+    summary: str
+    why_important: str
+
+    # Old Arabic attribute names still work (return English text).
+    @property
+    def headline_ar(self) -> str:
+        return self.headline
+
+    @property
+    def summary_ar(self) -> str:
+        return self.summary
+
+    @property
+    def why_important_ar(self) -> str:
+        return self.why_important
+
+
+class BriefResult(BaseModel):
+    """Full brief: ranked stories plus top story and market snapshot."""
+
+    stories: list[BriefStory] = Field(min_length=0, max_length=10)
+    top_story_reason: str = Field(default="", max_length=500)
+    market_snapshot: str = Field(default="", max_length=500)
