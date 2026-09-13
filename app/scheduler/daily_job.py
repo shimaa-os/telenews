@@ -138,7 +138,6 @@ class BriefWorkflow:
                 logger,
                 logging.INFO,
                 "workflow_finished",
-                finished_at=finished_at.isoformat(),
                 **result.model_dump(mode="json"),
             )
             return result
