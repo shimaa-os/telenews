@@ -58,6 +58,7 @@ class BriefWorkflow:
         self.ranker = ranker or NewsRanker()
         self.latest_news: list[NewsArticle] = []
         self.last_result: WorkflowResult | None = None
+        self.last_message: str | None = None
         self._lock = asyncio.Lock()
 
     async def close(self) -> None:
@@ -116,6 +117,7 @@ class BriefWorkflow:
                 top_story_reason=top_story_reason,
                 market_snapshot=market_snapshot,
             )
+            self.last_message = message
             telegram_messages_sent = 0
 
             if send_to_telegram:

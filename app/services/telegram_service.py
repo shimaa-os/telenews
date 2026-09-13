@@ -68,7 +68,9 @@ class TelegramService:
     ) -> None:
         if not bot_token or not chat_id:
             raise ValueError("Telegram bot token and chat ID are required")
+        self._bot_token = bot_token
         self._send_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+        self._updates_url = f"https://api.telegram.org/bot{bot_token}/getUpdates"
         self.chat_id = chat_id
         self._owns_client = client is None
         self.client = client or httpx.AsyncClient(timeout=httpx.Timeout(timeout_seconds))
@@ -78,7 +80,12 @@ class TelegramService:
             await self.client.aclose()
 
     async def send_message(self, message: str) -> list[int]:
-        """Send one logical message as one or more Telegram-safe chunks."""
+        """Send one logical message to the configured owner chat."""
+
+        return await self.send_to_chat(self.chat_id, message)
+
+    async def send_to_chat(self, chat_id: str | int, message: str) -> list[int]:
+        """Send one logical message to ANY chat (public bot replies)."""
 
         message_ids: list[int] = []
         chunks = split_message(message)
@@ -87,7 +94,7 @@ class TelegramService:
                 response = await self.client.post(
                     self._send_url,
                     json={
-                        "chat_id": self.chat_id,
+                        "chat_id": chat_id,
                         "text": chunk,
                         "disable_web_page_preview": True,
                     },
