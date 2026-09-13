@@ -1,0 +1,51 @@
+# Free daily run: no server, no Docker, no paid hosting.
+# Runs at 06:00 UTC every day = 08:00 in Cairo during summer (UTC+3).
+# In winter Cairo is UTC+2, so it arrives at 08:00 summer / 09:00 winter.
+# If you want exact 08:00 year-round, add a second schedule or adjust for DST.
+#
+# Required GitHub Secrets (Repo Settings -> Secrets and variables -> Actions):
+#   OPENAI_API_KEY, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
+# Optional Secrets (defaults work fine if unset):
+#   TIMEZONE=Africa/Cairo, NEWS_LOOKBACK_HOURS=24, MAX_NEWS_ITEMS=5,
+#   OPENAI_MODEL, OPENAI_BASE_URL, REQUEST_TIMEOUT_SECONDS=20, LOG_LEVEL=INFO
+# For OpenRouter keys (sk-or-v1-...): set OPENAI_BASE_URL=https://openrouter.ai/api/v1
+#   and OPENAI_MODEL=openai/gpt-4o-mini (or another OpenRouter model id).
+# Note: API_BEARER_TOKEN is NOT needed here (only for the FastAPI manual endpoints).
+
+name: Daily AI Morning Brief
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch: {} # lets you click "Run workflow" to test manually
+
+jobs:
+  send-brief:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      TIMEZONE: Africa/Cairo
+      NEWS_LOOKBACK_HOURS: "24"
+      MAX_NEWS_ITEMS: "5"
+      OPENAI_MODEL: ${{ secrets.OPENAI_MODEL }}
+      OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
+      REQUEST_TIMEOUT_SECONDS: "20"
+      LOG_LEVEL: INFO
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Send morning brief to Telegram
+        run: python -m app.run_once
