@@ -28,6 +28,54 @@ class RSSSource:
     url: str
 
 
+def build_x_sources(handles_csv: str, base_url: str) -> list[RSSSource]:
+    """Build RSSHub X/Twitter sources from comma-separated handles.
+
+    Example: X_HANDLES=Reuters,BreakingNews with base https://rsshub.app
+    gives X @Reuters -> https://rsshub.app/twitter/user/Reuters
+    X has no official free RSS, so these go through RSSHub and may fail;
+    the collector skips failures, so broken X feeds never kill the brief.
+    """
+
+    base = (base_url or "https://rsshub.app").strip().rstrip("/")
+    sources: list[RSSSource] = []
+    for raw in (handles_csv or "").split(","):
+        handle = raw.strip().lstrip("@")
+        if not handle or not all(c.isalnum() or c == "_" for c in handle):
+            continue
+        sources.append(RSSSource(f"X @{handle}", f"{base}/twitter/user/{handle}"))
+    return sources
+
+
+def parse_extra_feeds(extra_csv: str) -> list[RSSSource]:
+    """Parse EXTRA_RSS_FEEDS as semicolon-separated Name|URL pairs.
+
+    Example: EXTRA_RSS_FEEDS=X @NASA|https://rsshub.app/twitter/user/NASA;My Blog|https://example.com/feed
+    """
+
+    sources: list[RSSSource] = []
+    for raw in (extra_csv or "").split(";"):
+        item = raw.strip()
+        if not item or "|" not in item:
+            continue
+        name, url = item.split("|", 1)
+        name, url = name.strip(), url.strip()
+        if not name or not url.startswith(("http://", "https://")):
+            continue
+        sources.append(RSSSource(name[:120], url))
+    return sources
+
+
+def build_all_sources(
+    handles_csv: str = "",
+    base_url: str = "https://rsshub.app",
+    extra_csv: str = "",
+) -> tuple[RSSSource, ...]:
+    """Combine built-in 20 + X handles + custom extra feeds."""
+
+    return (*DEFAULT_SOURCES, *build_x_sources(handles_csv, base_url), *parse_extra_feeds(extra_csv))
+
+
 DEFAULT_SOURCES: tuple[RSSSource, ...] = (
     # GLOBAL NEWS
     RSSSource("Reuters", "https://www.reuters.com/rssFeed/businessNews"),

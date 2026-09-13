@@ -30,6 +30,9 @@ class Settings(BaseSettings):
     max_news_items: int = Field(default=10, ge=1, le=10, alias="MAX_NEWS_ITEMS")
     openai_model: str = Field(default="gpt-5-mini", alias="OPENAI_MODEL")
     openai_base_url: str | None = Field(default=None, alias="OPENAI_BASE_URL")
+    x_handles: str = Field(default="", alias="X_HANDLES")
+    rsshub_base_url: str = Field(default="https://rsshub.app", alias="RSSHUB_BASE_URL")
+    extra_rss_feeds: str = Field(default="", alias="EXTRA_RSS_FEEDS")
     request_timeout_seconds: float = Field(
         default=20.0, gt=0, le=120, alias="REQUEST_TIMEOUT_SECONDS"
     )

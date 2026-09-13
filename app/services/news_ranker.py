@@ -91,7 +91,12 @@ class NewsRanker:
     ) -> float:
         reference = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
         text = f" {article.title} {article.description}".casefold()
-        score = 1.0 + _SOURCE_WEIGHTS.get(article.source, 0.5)
+        # X sources are dynamic (X @handle) - give them a solid breaking-news weight.
+        if article.source.startswith("X @"):
+            base_source_weight = 1.1
+        else:
+            base_source_weight = _SOURCE_WEIGHTS.get(article.source, 0.5)
+        score = 1.0 + base_source_weight
 
         topic_scores = [
             weight

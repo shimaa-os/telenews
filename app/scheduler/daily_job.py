@@ -12,7 +12,7 @@ from app.config.settings import Settings
 from app.models.news import NewsArticle
 from app.services.ai_summarizer import AISummarizer
 from app.services.brief_formatter import format_telegram_message
-from app.services.news_collector import NewsCollector
+from app.services.news_collector import NewsCollector, build_all_sources
 from app.services.news_filter import filter_recent_news
 from app.services.news_ranker import NewsRanker
 from app.services.telegram_service import TelegramService
@@ -52,9 +52,18 @@ class BriefWorkflow:
         ranker: NewsRanker | None = None,
     ) -> None:
         self.settings = settings
-        self.collector = collector or NewsCollector(
-            timeout_seconds=settings.request_timeout_seconds
-        )
+        if collector is not None:
+            self.collector = collector
+        else:
+            sources = build_all_sources(
+                settings.x_handles,
+                settings.rsshub_base_url,
+                settings.extra_rss_feeds,
+            )
+            self.collector = NewsCollector(
+                sources=sources,
+                timeout_seconds=settings.request_timeout_seconds,
+            )
         self.ranker = ranker or NewsRanker()
         self.latest_news: list[NewsArticle] = []
         self.last_result: WorkflowResult | None = None

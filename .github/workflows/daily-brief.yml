@@ -7,7 +7,8 @@
 #   OPENAI_API_KEY, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
 # Optional Secrets (defaults work fine if unset):
 #   TIMEZONE=Africa/Cairo, NEWS_LOOKBACK_HOURS=24, MAX_NEWS_ITEMS=10,
-#   OPENAI_MODEL, OPENAI_BASE_URL, REQUEST_TIMEOUT_SECONDS=20, LOG_LEVEL=INFO
+#   OPENAI_MODEL, OPENAI_BASE_URL, X_HANDLES, RSSHUB_BASE_URL, EXTRA_RSS_FEEDS,
+#   REQUEST_TIMEOUT_SECONDS=20, LOG_LEVEL=INFO
 # For OpenRouter keys (sk-or-v1-...): set OPENAI_BASE_URL=https://openrouter.ai/api/v1
 #   and OPENAI_MODEL=openai/gpt-4o-mini (or another OpenRouter model id).
 # Note: API_BEARER_TOKEN is NOT needed here (only for the FastAPI manual endpoints).
@@ -32,6 +33,9 @@ jobs:
       MAX_NEWS_ITEMS: "10"
       OPENAI_MODEL: ${{ secrets.OPENAI_MODEL }}
       OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
+      X_HANDLES: ${{ secrets.X_HANDLES }}
+      RSSHUB_BASE_URL: ${{ secrets.RSSHUB_BASE_URL }}
+      EXTRA_RSS_FEEDS: ${{ secrets.EXTRA_RSS_FEEDS }}
       REQUEST_TIMEOUT_SECONDS: "20"
       LOG_LEVEL: INFO
     steps:
